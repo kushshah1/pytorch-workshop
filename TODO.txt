@@ -1,5 +1,6 @@
-Checkpointing - 
-Project organization - find a good AI model repo to showcase this
-Basic optimizations - pin memory (for training), num_workers, batch size tuning, model.eval() for inference
-Profiling explainer - GUI - an example of bad preprocessing
+Minimize GPU-CPU memcpy
 FSDP cpu offloading
+DALI - https://developer.nvidia.com/dali
+Reduce RAM usage
+Append reports to the repo
+
