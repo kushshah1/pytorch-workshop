@@ -99,7 +99,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Training
-    for epoch in range(3):
+    for epoch in range(20):
         sampler.set_epoch(epoch)
         train(rank, world_size, model, train_loader, criterion, optimizer, epoch)
     
