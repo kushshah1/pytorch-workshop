@@ -12,6 +12,8 @@ from torch.utils.data import DataLoader, DistributedSampler, Dataset
 import torch.optim as optim
 import esm
 import numpy as np
+import torch.cuda.nvtx as nvtx
+import torch.cuda.profiler as profiler
 
 class ProteinDataset(Dataset):
     def __init__(self, data):
@@ -39,10 +41,14 @@ class DownstreamFromESM(nn.Module):
         self.downstream = nn.Linear(self.esm_model.embed_dim, 10) # One layer, connect from embeddings to 10 classes
         
     def forward(self, x):
-        outputs = self.esm_model(x, repr_layers=[self.esm_model.num_layers])
-        representations = outputs["representations"][self.esm_model.num_layers]
-        embeddings = representations[:, 1:-2].mean(1)
-        return self.downstream(embeddings)
+        with nvtx.range(f"ESM inference"):
+            outputs = self.esm_model(x, repr_layers=[self.esm_model.num_layers])
+        with nvtx.range(f"Organize ESM output"):
+            representations = outputs["representations"][self.esm_model.num_layers]
+            embeddings = representations[:, 1:-2].mean(1)
+        with nvtx.range(f"Downstream MLP"):
+            logits = self.downstream(embeddings)
+        return logits
 
 def train(rank, world_size, model, train_loader, criterion, optimizer, epoch):
     for batch_idx, (inputs, targets) in enumerate(train_loader):
@@ -67,7 +73,7 @@ def main():
     
     # Load ESM-2 8M model
     print("Downloading 8M model ...")
-    esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D(<point to the pt>)
+    esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
     
     model = DownstreamFromESM(esm_model).to(rank)
     

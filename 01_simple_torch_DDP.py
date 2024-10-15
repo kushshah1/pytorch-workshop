@@ -5,6 +5,7 @@ import torch
 from socket import gethostname
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader, DistributedSampler, Dataset
 import torch.nn as nn
 import torch.optim as optim
 
@@ -16,6 +17,16 @@ class ToyModel(nn.Module):
 
     def forward(self, x):
         return self.fc2(self.fc1(x))
+
+class ToyDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
 
 def main():
     rank = int(os.environ["LOCAL_RANK"])
@@ -35,16 +46,26 @@ def main():
     optimizer = optim.SGD(ddp_model.parameters(), lr=0.01)
     loss_fn = nn.MSELoss()
 
+    if rank == 0:
+        print("Entering training loop")
+    inputs = torch.randn(250, 10).to(device)
+    labels = torch.randn(250, 5).to(device)
+
+    dataset = ToyDataset(list(zip(inputs, labels)))
+    sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
+    train_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
     for epoch in range(5):
-        inputs = torch.randn(20, 10).to(device)
-        labels = torch.randn(20, 5).to(device)
-
-        optimizer.zero_grad()
-        outputs = ddp_model(inputs)
-        loss = loss_fn(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
+        sampler.set_epoch(epoch)
+        for batch_idx, (inputs, labels) in enumerate(train_loader):
+            optimizer.zero_grad()
+            outputs = ddp_model(inputs)
+            loss = loss_fn(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            if rank == 0:
+                print(f"Epoch {epoch}, Batch {batch_idx}, Loss: {loss.item()}")
+    if rank == 0:
+        print("Training is done!")
     dist.destroy_process_group()
 
 if __name__ == "__main__":

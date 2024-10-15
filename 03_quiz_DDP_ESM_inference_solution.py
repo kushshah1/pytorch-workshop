@@ -1,5 +1,5 @@
 # In this script, we perform embedding of ESM models using DDP. 
-# Run with `torchrun --nnodes 1 --nproc-per-node 2 02_DDP_ESM_train.py`
+# This will be the quiz for DDP, hence no instructions provided
 
 
 import os
@@ -21,7 +21,9 @@ class ProteinDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
+        time.sleep(1)
         return self.data[idx]
+
 
 def gen_data(num):
     def rand_seq(length):
@@ -31,33 +33,22 @@ def gen_data(num):
         data.append((i, rand_seq(100)))
     return data
 
-class DownstreamFromESM(nn.Module):
-    def __init__(self, esm_model):
-        super(DownstreamFromESM, self).__init__()
-        self.esm_model = esm_model
-        self.esm_model.eval()
-        self.downstream = nn.Linear(self.esm_model.embed_dim, 10) # One layer, connect from embeddings to 10 classes
-        
-    def forward(self, x):
-        outputs = self.esm_model(x, repr_layers=[self.esm_model.num_layers])
-        representations = outputs["representations"][self.esm_model.num_layers]
-        embeddings = representations[:, 1:-2].mean(1)
-        return self.downstream(embeddings)
-
-def train(rank, world_size, model, train_loader, criterion, optimizer, epoch):
-    for batch_idx, (inputs, targets) in enumerate(train_loader):
+def get_embedding(rank, world_size, model, sample_loader):
+    model.eval()
+    for batch_idx, (inputs, targets) in enumerate(sample_loader):
         inputs, targets = inputs.to(rank), targets.to(rank)
-        print(f"Rank {rank} input size: {inputs.shape}")
-        optimizer.zero_grad()
-        logits = model(inputs)
-        loss = criterion(logits, targets)
-        loss.backward()
-        optimizer.step()
-        if rank == 0:
-            print(f"Epoch {epoch}, Batch {batch_idx}, Loss: {loss.item()}")
+        
+        outputs = model(inputs, repr_layers=[model.num_layers])
+        
+        # Extract the logits from the output dict
+        logits = outputs["logits"]
+        representations = outputs["representations"][model.num_layers]
+        embeddings = representations[:, 1:-2].mean(1)
+        # print(outputs)
+        print(f"Rank {rank}: {logits.shape}, {representations.shape}, {embeddings.shape}")
 
 def main(): 
-    rank = int(os.environ["LOCAL_RANK"])
+    rank = int(os.environ["LOCAL_RANK"]) 
     world_size = int(os.environ["WORLD_SIZE"])
     
     print(f"Hello from rank {rank} of {world_size} on {gethostname()}")
@@ -67,16 +58,16 @@ def main():
     
     # Load ESM-2 8M model
     print("Downloading 8M model ...")
-    esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D(<point to the pt>)
+    model, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
     
-    model = DownstreamFromESM(esm_model).to(rank)
+    model = model.to(rank)
     
     # Wrap the model with DDP
     ddp_model = DDP(model, device_ids=[rank])
   
     # Prepare dummy inputs (protein sequence embeddings)
     batch_converter = alphabet.get_batch_converter()
-    data = gen_data(500)
+    data = gen_data(100)
     batch_labels, batch_strs, batch_tokens = batch_converter(data)
 
     inputs = [batch_converter([(label, seq)])[2].squeeze(0) for label, seq in data]
@@ -85,21 +76,16 @@ def main():
     # Create a Dataset and DataLoader with DistributedSampler
     dataset = ProteinDataset(list(zip(inputs, targets)))
     
-    sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
-    train_loader = DataLoader(dataset, batch_size=200, sampler=sampler)
-    # train_loader = DataLoader(dataset, batch_size=250)
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-    # Training
-    for epoch in range(3):
-        sampler.set_epoch(epoch)
-        train(rank, world_size, model, train_loader, criterion, optimizer, epoch)
+    sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=False)
+    sample_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
+    # sample_loader = DataLoader(dataset, batch_size=250)
+    
+    # Inference
+    get_embedding(rank, world_size, model, sample_loader)
     
     # Cleanup
     dist.destroy_process_group()
 
 if __name__ == "__main__":
     main()
-
+    
