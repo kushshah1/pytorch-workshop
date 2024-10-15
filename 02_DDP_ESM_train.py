@@ -35,8 +35,14 @@ class DownstreamFromESM(nn.Module):
     def __init__(self, esm_model):
         super(DownstreamFromESM, self).__init__()
         self.esm_model = esm_model
+
+        # Freeze entire esm_model
         self.esm_model.eval()
-        self.downstream = nn.Linear(self.esm_model.embed_dim, 10) # One layer, connect from embeddings to 10 classes
+        for param in self.esm_model.parameters():
+            param.requires_grad = False
+
+        # One layer, connect from embeddings to 10 classes
+        self.downstream = nn.Linear(self.esm_model.embed_dim, 10) 
         
     def forward(self, x):
         outputs = self.esm_model(x, repr_layers=[self.esm_model.num_layers])
