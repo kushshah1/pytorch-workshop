@@ -93,7 +93,6 @@ def main():
     
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
     train_loader = DataLoader(dataset, batch_size=200, sampler=sampler)
-    # train_loader = DataLoader(dataset, batch_size=250)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)

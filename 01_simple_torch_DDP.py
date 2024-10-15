@@ -63,7 +63,7 @@ def main():
             loss.backward()
             optimizer.step()
             if rank == 0:
-                print(f"Epoch {epoch}, Batch {batch_idx}, Loss: {loss.item()}")
+                print(f"Epoch {epoch}, Batch {batch_idx}, Batch size: {inputs.shape}, Loss: {loss.item()}")
     if rank == 0:
         print("Training is done!")
     dist.destroy_process_group()
