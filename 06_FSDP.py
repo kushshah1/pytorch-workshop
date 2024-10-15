@@ -1,5 +1,5 @@
 # FSDP example, properly wrapped
-# Run with `torchrun --nnodes 1 --nproc-per-node 2 04_FSDP2.py`
+# Run with `python 06_FSDP.py`
 
 import os
 import argparse
@@ -153,7 +153,7 @@ def fsdp_main(rank, world_size, args):
         scheduler.step()
 
     init_end_event.record()
-
+    dist.barrier()
     if rank == 0:
         print(f"CUDA event elapsed time: {init_start_event.elapsed_time(init_end_event) / 1000}sec")
         print(f"{model}")
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
     parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
+                        help='number of epochs to train (default: 3)')
     parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
                         help='learning rate (default: 1.0)')
     parser.add_argument('--gamma', type=float, default=0.7, metavar='M',

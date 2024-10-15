@@ -7,11 +7,11 @@ import torch
 from socket import gethostname
 import torch.distributed as dist
 import torch.nn as nn
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DataLoader, DistributedSampler, Dataset
+from torch.utils.data import DataLoader, Dataset
 import torch.optim as optim
 import esm
 import numpy as np
+# TODO: Import some of the most important classes
 
 class ProteinDataset(Dataset):
     def __init__(self, data):
@@ -21,7 +21,6 @@ class ProteinDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        time.sleep(1)
         return self.data[idx]
 
 
@@ -63,7 +62,8 @@ def main():
     model = model.to(rank)
     
     # Wrap the model with DDP
-    ddp_model = DDP(model, device_ids=[rank])
+    # TODO: This clearly isn't right. FIXME!
+    ddp_model = model
   
     # Prepare dummy inputs (protein sequence embeddings)
     batch_converter = alphabet.get_batch_converter()
@@ -76,9 +76,10 @@ def main():
     # Create a Dataset and DataLoader with DistributedSampler
     dataset = ProteinDataset(list(zip(inputs, targets)))
     
-    sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=False)
+    # TODO: Place a sampler here for DDP, remember to import the class as well
+    sampler = 'How do I make a sampler for DDP?'
+    print(sampler) 
     sample_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
-    # sample_loader = DataLoader(dataset, batch_size=250)
     
     # Inference
     get_embedding(rank, world_size, model, sample_loader)
