@@ -23,13 +23,14 @@ class ProteinDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # Simulates intensive data processing
-        # Has nothing to do with data returned
-        arr = torch.randn(20, 5) 
-        for _ in range(5000):
-            arr = arr ** (1+1e-8)
-
+        dummy_data_preprocessing()
         return self.data[idx]
+
+def dummy_data_preprocessing():
+    # Simulates intensive data processing
+    arr = torch.randn(20, 5) 
+    for _ in range(5000):
+        arr = arr ** (1+1e-8)
 
 def gen_data(num):
     def rand_seq(length):
@@ -104,10 +105,12 @@ def main():
     dataset = ProteinDataset(list(zip(inputs, targets)))
 
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
-    train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_worker=0)
+
+    # Poor choice for DataLoader
+    #train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_worker=0)
 
     # A better choice for DataLoader
-    #train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_worker=10, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_worker=10, pin_memory=True)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)

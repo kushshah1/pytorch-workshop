@@ -25,13 +25,14 @@ class ProteinDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # Simulates intensive data processing
-        # Has nothing to do with data returned
-        arr = torch.randn(20, 5) 
-        for _ in range(5000):
-            arr = arr ** (1+1e-8)
-
+        dummy_data_preprocessing()
         return self.data[idx]
+
+def dummy_data_preprocessing():
+    # Simulates intensive data processing
+    arr = torch.randn(20, 5) 
+    for _ in range(5000):
+        arr = arr ** (1+1e-8)
 
 def gen_data(num):
     def rand_seq(length):
@@ -45,6 +46,7 @@ class DownstreamFromESM(nn.Module):
     def __init__(self, esm_model):
         super(DownstreamFromESM, self).__init__()
         self.esm_model = esm_model
+        self.esm_model.eval()
 
         #### TODO ####: After setting up nvtx, 
         #### enable this part to see the effect of not backpassing through ESM
@@ -52,7 +54,6 @@ class DownstreamFromESM(nn.Module):
         #### ESM repo does recommend using this as a frozen embedder
 
         ## Freeze ESM model. 
-        #self.esm_model.eval()
         #for param in self.esm_model.parameters():
         #    param.requires_grad = False
 
@@ -126,7 +127,7 @@ def main():
     train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_worker=0)
 
     #### TODO ####: After setting up nvtx,
-    #### Try this different settings for num_workers in DataLoader
+    #### Try this different setting for num_workers in DataLoader
     #### Observe the differnce in per-epoch time
 
     #train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_worker=10, pin_memory=True)
