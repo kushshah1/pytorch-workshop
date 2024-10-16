@@ -1,5 +1,5 @@
 # In this script, we perform embedding of ESM models using DDP. 
-# Run with `torchrun --nnodes 1 --nproc-per-node 2 05_quiz_profiling_ESM_downstream_solution.py`
+# Run with `torchrun --nnodes 1 --nproc_per_node 2 05_quiz_profiling_ESM_downstream_solution.py`
 
 
 import os
@@ -107,10 +107,10 @@ def main():
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
 
     # Poor choice for DataLoader
-    #train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_worker=0)
+    #train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_workers=0)
 
     # A better choice for DataLoader
-    train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_worker=10, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_workers=10, pin_memory=True)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)

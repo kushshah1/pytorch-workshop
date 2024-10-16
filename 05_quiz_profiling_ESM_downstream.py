@@ -1,5 +1,5 @@
 # In this script, we perform embedding of ESM models using DDP. 
-# Run with `torchrun --nnodes 1 --nproc-per-node 2 05_quiz_profiling_ESM_downstream.py`
+# Run with `torchrun --nnodes 1 --nproc_per_node 2 05_quiz_profiling_ESM_downstream.py`
 # There's no correct way of doing benchmarking, just useful ways.
 # For possible solution see the solution script
 
@@ -124,13 +124,13 @@ def main():
     dataset = ProteinDataset(list(zip(inputs, targets)))
 
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
-    train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_worker=0)
+    train_loader = DataLoader(dataset, batch_size=200, sampler=sampler, num_workers=0)
 
     #### TODO ####: After setting up nvtx,
     #### Try this different setting for num_workers in DataLoader
     #### Observe the differnce in per-epoch time
 
-    #train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_worker=10, pin_memory=True)
+    #train_loader = DataLoader(dataset, batch_size=20, sampler=sampler, num_workers=10, pin_memory=True)
 
     ### END TODO ####
 
