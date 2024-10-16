@@ -44,14 +44,14 @@ def main():
     print("\n\nPARAMETERS BEFORE TRAINING")
     [print(x) for x in model.named_parameters()]
 
+    # Create 20 data points, each is a length-5 vector
+    inputs = torch.randn(20, 5).to(device)
+    # Create 20 target values, each is a scalar
+    labels = torch.randn(20, 1).to(device)
+
     # Training loop
     for epoch in range(5):
         
-        # Create 20 data points, each is a length-5 vector
-        inputs = torch.randn(20, 5).to(device)
-        # Create 20 target values, each is a scalar
-        labels = torch.randn(20, 1).to(device)
-
         # Zero the gradient of the optimizer
         optimizer.zero_grad()
         
