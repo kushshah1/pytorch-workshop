@@ -73,7 +73,7 @@ def main():
     
     # Load ESM-2 8M model
     print("Downloading 8M model ...")
-    esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D(<point to the pt>)
+    esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
     
     model = DownstreamFromESM(esm_model).to(rank)
     

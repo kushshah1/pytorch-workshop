@@ -21,7 +21,6 @@ class ProteinDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        time.sleep(1)
         return self.data[idx]
 
 
