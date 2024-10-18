@@ -100,7 +100,7 @@ def main():
     # Training
     for epoch in range(3):
         sampler.set_epoch(epoch)
-        train(rank, world_size, model, train_loader, criterion, optimizer, epoch)
+        train(rank, world_size, ddp_model, train_loader, criterion, optimizer, epoch)
     
     # Cleanup
     dist.destroy_process_group()

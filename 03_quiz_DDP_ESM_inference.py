@@ -37,11 +37,11 @@ def get_embedding(rank, world_size, model, sample_loader):
     for batch_idx, (inputs, targets) in enumerate(sample_loader):
         inputs, targets = inputs.to(rank), targets.to(rank)
         
-        outputs = model(inputs, repr_layers=[model.num_layers])
+        outputs = model(inputs, repr_layers=[model.module.num_layers])
         
         # Extract the logits from the output dict
         logits = outputs["logits"]
-        representations = outputs["representations"][model.num_layers]
+        representations = outputs["representations"][model.module.num_layers]
         embeddings = representations[:, 1:-2].mean(1)
         # print(outputs)
         print(f"Rank {rank}: {logits.shape}, {representations.shape}, {embeddings.shape}")

@@ -54,7 +54,7 @@ class DownstreamFromESM(nn.Module):
         #### ESM repo does recommend using this as a frozen embedder
 
         ## Freeze ESM model. 
-        #for param in self.esm_model.parameters():
+        # for param in self.esm_model.parameters():
         #    param.requires_grad = False
 
         #### END TODO ####
@@ -110,7 +110,7 @@ def main():
     model = DownstreamFromESM(esm_model).to(rank)
 
     # Wrap the model with DDP
-    ddp_model = DDP(model, device_ids=[rank])
+    ddp_model = DDP(model, device_ids=[rank], find_unused_parameters=True)
 
     # Prepare dummy inputs (protein sequence embeddings)
     batch_converter = alphabet.get_batch_converter()
@@ -143,7 +143,7 @@ def main():
             print(f'Epoch {epoch}')
         sampler.set_epoch(epoch)
         with nvtx.range(f"Epoch"):
-            train(rank, world_size, model, train_loader, criterion, optimizer, epoch)
+            train(rank, world_size, ddp_model, train_loader, criterion, optimizer, epoch)
 
     # Cleanup
     dist.destroy_process_group()

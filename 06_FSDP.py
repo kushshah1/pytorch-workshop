@@ -131,7 +131,7 @@ def fsdp_main(rank, world_size, args):
     train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
     my_auto_wrap_policy = functools.partial(
-        size_based_auto_wrap_policy, min_num_params=5000
+        size_based_auto_wrap_policy, min_num_params=5000 # Try 50 or 500000, see different wrapping
     )
     torch.cuda.set_device(rank)
 

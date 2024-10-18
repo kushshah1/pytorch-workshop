@@ -121,7 +121,7 @@ def main():
             print(f'Epoch {epoch}')
         sampler.set_epoch(epoch)
         with nvtx.range(f"Epoch"):
-            train(rank, world_size, model, train_loader, criterion, optimizer, epoch)
+            train(rank, world_size, ddp_model, train_loader, criterion, optimizer, epoch)
     # Cleanup
     dist.destroy_process_group()
 
