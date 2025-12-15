@@ -36,10 +36,11 @@ def main():
     torch.cuda.set_device(rank)
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
+    device = torch.device('cuda')
+
     if rank == 0:
         print(f"Group initialized? {dist.is_initialized()}", flush=True)
     
-    device = torch.device('cuda')
     model = ToyModel().to(device)
     ddp_model = DDP(model, device_ids=[device])
 
@@ -48,13 +49,15 @@ def main():
 
     if rank == 0:
         print("Entering training loop")
+        
     inputs = torch.randn(250, 10).to(device)
     labels = torch.randn(250, 5).to(device)
 
     dataset = ToyDataset(list(zip(inputs, labels)))
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
     train_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
-    for epoch in range(5):
+    
+    for epoch in range(4):
         sampler.set_epoch(epoch)
         for batch_idx, (inputs, labels) in enumerate(train_loader):
             optimizer.zero_grad()
@@ -62,8 +65,8 @@ def main():
             loss = loss_fn(outputs, labels)
             loss.backward()
             optimizer.step()
-            if rank == 0:
-                print(f"Epoch {epoch}, Batch {batch_idx}, Batch size: {inputs.shape}, Loss: {loss.item()}")
+            #if rank == 0:
+            print(f"Rank {rank}, Epoch {epoch}, Batch {batch_idx}, Batch size: {inputs.shape}, Loss: {loss.item()}")
     if rank == 0:
         print("Training is done!")
     dist.destroy_process_group()
