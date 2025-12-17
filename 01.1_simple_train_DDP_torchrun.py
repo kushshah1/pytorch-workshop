@@ -21,14 +21,15 @@ class ToyModel(nn.Module):
         return self.fc2(self.fc1(x))
 
 class ToyDataset(Dataset):
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, inputs, labels):
+        self.inputs = inputs
+        self.labels = labels
 
     def __len__(self):
-        return len(self.data)
+        return len(self.inputs)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return self.inputs[idx], self.labels[idx]
 
 def main():
     rank = int(os.environ["LOCAL_RANK"])
@@ -55,7 +56,7 @@ def main():
     inputs = torch.randn(250, 10).to(device)
     labels = torch.randn(250, 5).to(device)
 
-    dataset = ToyDataset(list(zip(inputs, labels)))
+    dataset = ToyDataset(inputs, labels)
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
     train_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
     
