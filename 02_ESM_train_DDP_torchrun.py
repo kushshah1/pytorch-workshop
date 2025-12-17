@@ -56,7 +56,8 @@ class DownstreamFromESM(nn.Module):
 def train(rank, world_size, model, train_loader, criterion, optimizer, epoch):
     for batch_idx, (inputs, targets) in enumerate(train_loader):
         inputs, targets = inputs.to(rank), targets.to(rank)
-        print(f"Rank {rank} input size: {inputs.shape}")
+        if rank == 0:
+            print(f"Rank {rank} input size: {inputs.shape}")
         optimizer.zero_grad()
         logits = model(inputs) # fwd pass
         loss = criterion(logits, targets) # calc loss
