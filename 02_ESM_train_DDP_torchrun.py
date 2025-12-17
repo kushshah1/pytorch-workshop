@@ -24,7 +24,7 @@ class ProteinDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx]
 
-def gen_data(num): # Generates length-n list: [(index, 100-residue sequence), ...]
+def gen_data(num): # Generates random input data, a length-n list: [(index, 100-residue sequence), ...]
     def rand_seq(length):
         return ''.join(np.random.choice([x for x in 'ACDEFGHIKLMNPQRSTVWY'], length, replace=True))
     data = []
@@ -69,7 +69,6 @@ def train(rank, world_size, model, train_loader, criterion, optimizer, epoch):
 def main(): 
     rank = int(os.environ["LOCAL_RANK"])
     world_size = int(os.environ["WORLD_SIZE"])
-    
     print(f"Hello from rank {rank} of {world_size} on {gethostname()}")
     
     torch.cuda.set_device(rank)
@@ -84,7 +83,7 @@ def main():
     # Wrap the model with DDP
     ddp_model = DDP(model, device_ids=[rank])
   
-    # Prepare (inputs, targets): Needs to be in form of per-sequence (token IDs, label)
+    # Prepare (inputs, targets): Input needs to be in form of per-sequence (token IDs, label)
     data = gen_data(500)
     inputs = [batch_converter([(label, seq)])[2].squeeze(0) for label, seq in data]
     targets = torch.randint(0, 10, (len(data),))  # Dummy target classes
