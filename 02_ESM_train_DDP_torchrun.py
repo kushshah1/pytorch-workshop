@@ -96,7 +96,7 @@ def main():
     train_loader = DataLoader(dataset, batch_size=200, sampler=sampler)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(ddp_model.parameters(), lr=0.001)
 
     # Training
     for epoch in range(3):
