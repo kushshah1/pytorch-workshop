@@ -24,7 +24,7 @@ class ProteinDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx]
 
-def gen_data(num):
+def gen_data(num): # Generates length-n list: [(index, 100-residue sequence), ...]
     def rand_seq(length):
         return ''.join(np.random.choice([x for x in 'ACDEFGHIKLMNPQRSTVWY'], length, replace=True))
     data = []
@@ -44,22 +44,24 @@ class DownstreamFromESM(nn.Module):
 
         # One layer, connect from embeddings to 10 classes
         self.downstream = nn.Linear(self.esm_model.embed_dim, 10) 
-        
+
+    # Forward pass outputs class logits
     def forward(self, x):
         outputs = self.esm_model(x, repr_layers=[self.esm_model.num_layers])
         representations = outputs["representations"][self.esm_model.num_layers]
         embeddings = representations[:, 1:-2].mean(1)
-        return self.downstream(embeddings)
+        class_logits = self.downstream(embeddings)
+        return class_logits
 
 def train(rank, world_size, model, train_loader, criterion, optimizer, epoch):
     for batch_idx, (inputs, targets) in enumerate(train_loader):
         inputs, targets = inputs.to(rank), targets.to(rank)
         print(f"Rank {rank} input size: {inputs.shape}")
         optimizer.zero_grad()
-        logits = model(inputs)
-        loss = criterion(logits, targets)
-        loss.backward()
-        optimizer.step()
+        logits = model(inputs) # fwd pass
+        loss = criterion(logits, targets) # calc loss
+        loss.backward() # calc gradients
+        optimizer.step() # update params
         if rank == 0:
             print(f"Epoch {epoch}, Batch {batch_idx}, Loss: {loss.item()}")
 
@@ -75,23 +77,19 @@ def main():
     # Load ESM-2 8M model
     print("Downloading 8M model ...")
     esm_model, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
-    
     model = DownstreamFromESM(esm_model).to(rank)
+    batch_converter = alphabet.get_batch_converter() # utility to go from seq to token ID
     
     # Wrap the model with DDP
     ddp_model = DDP(model, device_ids=[rank])
   
-    # Prepare dummy inputs (protein sequence embeddings)
-    batch_converter = alphabet.get_batch_converter()
+    # Prepare (inputs, targets): Needs to be in form of per-sequence (token IDs, label)
     data = gen_data(500)
-    batch_labels, batch_strs, batch_tokens = batch_converter(data)
-
     inputs = [batch_converter([(label, seq)])[2].squeeze(0) for label, seq in data]
     targets = torch.randint(0, 10, (len(data),))  # Dummy target classes
     
     # Create a Dataset and DataLoader with DistributedSampler
     dataset = ProteinDataset(list(zip(inputs, targets)))
-    
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
     train_loader = DataLoader(dataset, batch_size=200, sampler=sampler)
 
