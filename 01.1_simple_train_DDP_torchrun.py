@@ -58,7 +58,7 @@ def main():
 
     dataset = ToyDataset(inputs, labels)
     sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True)
-    train_loader = DataLoader(dataset, batch_size=40, sampler=sampler)
+    train_loader = DataLoader(dataset, batch_size=40, sampler=sampler, shuffle=False)
     
     for epoch in range(4):
         sampler.set_epoch(epoch)
