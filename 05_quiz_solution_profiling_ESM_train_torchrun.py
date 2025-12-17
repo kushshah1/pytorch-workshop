@@ -1,6 +1,7 @@
+# 05_quiz_solution_profiling_ESM_train_torchrun.py
 # [SOLUTION] In this script, we perform embedding of ESM models using DDP. 
-# Run with `nsys profile -t cuda,nvtx torchrun --nnodes 1 --nproc_per_node 2 05_quiz_profiling_ESM_downstream_solution.py`
-
+# Run with:
+#   nsys profile -t cuda,nvtx torchrun --nnodes 1 --nproc_per_node 2 05_quiz_solution_profiling_ESM_train_torchrun.py
 
 import os
 import torch

@@ -1,4 +1,6 @@
-# Run this script with `torchrun --nnodes 1 --nproc_per_node 2 01_simple_torch_DDP.py` 
+# 01.1_simple_train_DDP_torchrun.py
+# Run with:
+#   torchrun --nnodes 1 --nproc_per_node 2 01.1_simple_train_DDP_torchrun.py
 
 import os
 import torch

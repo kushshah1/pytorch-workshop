@@ -1,5 +1,7 @@
-# Profiling script 
-# Run with `nsys profile -t cuda,nvtx torchrun --nnodes 1 --nproc_per_node 2 04_profiling.py`
+# 04_profiling_simple_train_DDP_torchrun.py
+# Profiling script
+# Run with:
+#   nsys profile -t cuda,nvtx torchrun --nnodes 1 --nproc_per_node 2 04_profiling_simple_train_DDP_torchrun.py
 
 import os
 import torch

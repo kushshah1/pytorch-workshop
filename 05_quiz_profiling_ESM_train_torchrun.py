@@ -1,5 +1,5 @@
+# 05_quiz_profiling_ESM_train_torchrun.py
 # In this script, we perform embedding of ESM models using DDP. 
-# Run with `torchrun --nnodes 1 --nproc_per_node 2 05_quiz_profiling_ESM_downstream.py`
 # There's no correct way of doing benchmarking, just useful ways.
 # For possible solution see the solution script
 

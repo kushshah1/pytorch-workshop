@@ -1,5 +1,7 @@
+# 02.1_ESM_train_DDP_torchrun_multinode.py
 # In this script, we perform embedding of ESM models using DDP. 
-# Run multi-node: torchrun --nnodes 2 --nproc_per_node 2 02_DDP_ESM_train.py
+# Run with:
+#   torchrun --nnodes 2 --nproc_per_node 2 02.1_ESM_train_DDP_torchrun_multinode.py
 
 import os
 import torch

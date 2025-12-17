@@ -1,5 +1,7 @@
+# 06_train_FSDP.py
 # FSDP example, properly wrapped
-# Run with `python 06_FSDP.py`
+# Run with:
+#   python 06_train_FSDP.py
 
 import os
 import argparse

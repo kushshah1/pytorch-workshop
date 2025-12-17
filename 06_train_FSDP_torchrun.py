@@ -1,6 +1,7 @@
-# 06_FSDP_torchrun.py
+# 06_train_FSDP.py
+# FSDP example, properly wrapped with torchrun
 # Run with:
-#   torchrun --nproc_per_node=NUM_GPUS 06_FSDP_torchrun.py
+#   torchrun --nproc_per_node=2 06_train_FSDP_torchrun.py
 
 import os
 import argparse

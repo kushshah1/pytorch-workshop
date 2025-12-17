@@ -1,4 +1,6 @@
-# Execute with python 00_all_in_one_PyTorch_script.py
+# 01_simple_train.py
+# Run with:
+#   python 01_simple_train.py
 
 import os
 import torch

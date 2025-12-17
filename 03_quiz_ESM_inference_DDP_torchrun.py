@@ -1,6 +1,6 @@
-# [SOLUTION] In this script, we perform embedding of ESM models using DDP. 
-# Run with `torchrun --nnodes 1 --nproc_per_node 2 03_quiz_DDP_ESM_inference_solution.py`
-
+# 03_quiz_ESM_inference_DDP_torchrun.py
+# In this script, we perform embedding of ESM models using DDP. 
+# This will be the quiz for DDP, hence no instructions provided
 
 import os
 import torch
